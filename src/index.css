@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: #f4f9ff;
+  background-image: radial-gradient(#d3e6fb 1.5px, transparent 1.5px);
+  background-size: 32px 32px;
+}
+
+.baby-shadow {
+  box-shadow: 0 12px 30px -10px rgba(125, 211, 252, 0.4);
+}
+
+.rounded-card {
+  border-radius: 28px;
+}

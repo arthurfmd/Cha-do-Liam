@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "Gift": {
+      "title": "Gift",
+      "description": "A gift in the baby shower registry",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the gift"
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the gift"
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "A URL pointing to a picture of the gift"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["available", "chosen"],
+          "description": "The availability status of the gift"
+        },
+        "chosenBy": {
+          "type": "string",
+          "description": "The name of the guest who chose the gift (empty string if none)"
+        },
+        "public": {
+          "type": "boolean",
+          "description": "Indicates if the gift is meant to be visible to all"
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["name", "description", "photoUrl", "status", "chosenBy", "public", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/gifts/{giftId}": {
+      "schema": { "$ref": "#/entities/Gift" },
+      "description": "The main collection of baby shower gifts"
+    }
+  }
+}

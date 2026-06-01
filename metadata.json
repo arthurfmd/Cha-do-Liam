@@ -1,0 +1,6 @@
+{
+  "name": "Chá de Fraldas do Liam",
+  "description": "Uma lista de presentes clean e moderna para o chá de fraldas do bebê Liam, com reservas em tempo real.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
