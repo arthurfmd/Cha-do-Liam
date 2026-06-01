@@ -4,5 +4,8 @@ service cloud.firestore {
     match /gifts/{giftId} {
       allow read, write: if true;
     }
+    match /settings/{docId} {
+      allow read, write: if true;
+    }
   }
 }

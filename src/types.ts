@@ -8,3 +8,8 @@ export interface Gift {
   public: boolean;
   createdAt: number;
 }
+
+export interface EventInfo {
+  date: string;
+  location: string;
+}

@@ -5,14 +5,21 @@ import { AdminLoginModal } from './components/AdminLoginModal';
 import { Baby, Lock } from 'lucide-react';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { auth } from './lib/firebase';
+import { subscribeToEventInfo } from './api/settings';
+import { EventInfo } from './types';
 
 export default function App() {
   const [view, setView] = useState<'guest' | 'admin'>('guest');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [eventInfo, setEventInfo] = useState<EventInfo | null>(null);
 
   useEffect(() => {
     setIsAuthReady(true);
+    const unsubscribe = subscribeToEventInfo((info) => {
+      setEventInfo(info);
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -95,8 +102,8 @@ export default function App() {
         <div className='flex items-center gap-3 bg-sky-50 px-5 py-3 rounded-2xl'>
           <span className='text-2xl'>📍</span>
           <p className='text-sm font-bold text-sky-800 tracking-wide leading-tight'>
-            25 de Agosto às 15h <br className="sm:hidden" />
-            <span className="opacity-70 font-medium">— Rua das Flores, 123</span>
+            {eventInfo?.date || 'Carregando...'} <br className="sm:hidden" />
+            <span className="opacity-70 font-medium">— {eventInfo?.location || 'Carregando...'}</span>
           </p>
         </div>
         <p className='text-[10px] sm:text-xs text-sky-600/70 uppercase tracking-widest font-extrabold flex items-center gap-2'>

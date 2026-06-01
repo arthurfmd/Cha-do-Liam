@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Gift } from '../types';
 import { subscribeToGifts, addGift, deleteGift, unchooseGift } from '../api/gifts';
-import { Plus, Trash2, Unlock, Image as ImageIcon, LayoutGrid, List } from 'lucide-react';
+import { subscribeToEventInfo, updateEventInfo } from '../api/settings';
+import { Plus, Trash2, Unlock, Image as ImageIcon, LayoutGrid, List, Settings } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 export function AdminPanel() {
@@ -14,16 +15,45 @@ export function AdminPanel() {
   const [newDesc, setNewDesc] = useState('');
   const [newUrl, setNewUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'chosen'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'chosen' | 'settings'>('all');
   const [confirmingAction, setConfirmingAction] = useState<{id: string, type: 'delete' | 'unchoose'} | null>(null);
 
+  const [eventDate, setEventDate] = useState('');
+  const [eventLocation, setEventLocation] = useState('');
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
   useEffect(() => {
-    const unsubscribe = subscribeToGifts((data) => {
+    let unsubscribeGifts = () => {};
+    let unsubscribeSettings = () => {};
+
+    unsubscribeGifts = subscribeToGifts((data) => {
       setGifts(data);
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    unsubscribeSettings = subscribeToEventInfo((info) => {
+      setEventDate(info.date);
+      setEventLocation(info.location);
+    });
+
+    return () => {
+      unsubscribeGifts();
+      unsubscribeSettings();
+    };
   }, []);
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      await updateEventInfo({ date: eventDate, location: eventLocation });
+      alert('Configurações salvas com sucesso!');
+    } catch (err) {
+      alert('Erro ao salvar configurações.');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,26 +175,68 @@ export function AdminPanel() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-slate-200">
+      <div className="flex gap-2 mb-6 border-b border-slate-200 overflow-x-auto pb-1">
         <button 
           onClick={() => setActiveTab('all')}
-          className={twMerge("pb-3 px-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors", activeTab === 'all' ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700")}
+          className={twMerge("pb-3 px-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap", activeTab === 'all' ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700")}
         >
           <LayoutGrid className="w-4 h-4" />
           Todos os Presentes
         </button>
         <button 
           onClick={() => setActiveTab('chosen')}
-          className={twMerge("pb-3 px-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors", activeTab === 'chosen' ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700")}
+          className={twMerge("pb-3 px-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap", activeTab === 'chosen' ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700")}
         >
           <List className="w-4 h-4" />
           Lista de Reservados
+        </button>
+        <button 
+          onClick={() => setActiveTab('settings')}
+          className={twMerge("pb-3 px-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap", activeTab === 'settings' ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-700")}
+        >
+          <Settings className="w-4 h-4" />
+          Configurações da Festa
         </button>
       </div>
 
       {/* List */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        {filteredGifts.length === 0 ? (
+        {activeTab === 'settings' ? (
+          <div className="p-6 sm:p-8">
+            <h3 className="font-semibold text-lg text-slate-800 mb-6">Informações do Evento</h3>
+            <form onSubmit={handleSaveSettings} className="space-y-5 max-w-lg">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Data e Hora</label>
+                <input 
+                  type="text" 
+                  required
+                  value={eventDate} onChange={e => setEventDate(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Ex: 25 de Agosto às 15h"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Local / Endereço</label>
+                <input 
+                  type="text" 
+                  required
+                  value={eventLocation} onChange={e => setEventLocation(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Ex: Rua das Flores, 123"
+                />
+              </div>
+              <div className="pt-2 flex justify-end">
+                <button 
+                  type="submit" 
+                  disabled={isSavingSettings}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50"
+                >
+                  {isSavingSettings ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+              </div>
+            </form>
+          </div>
+        ) : filteredGifts.length === 0 ? (
            <div className="p-8 text-center text-slate-500">Nenhum presente encontrado.</div>
         ) : (
           <ul className="divide-y divide-slate-100">
