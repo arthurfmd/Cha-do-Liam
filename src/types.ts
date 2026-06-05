@@ -7,6 +7,7 @@ export interface Gift {
   chosenBy: string;
   public: boolean;
   createdAt: number;
+  order?: number;
 }
 
 export interface EventInfo {

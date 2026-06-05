@@ -1,4 +1,4 @@
-import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Gift } from '../types';
 
@@ -14,8 +14,14 @@ export function subscribeToGifts(callback: (gifts: Gift[]) => void) {
         id: doc.id,
         ...doc.data()
       })) as Gift[];
-      // Sort gifts: available first, then by creation date descending
+      // Sort gifts: by order first, then by status (available first), then by creation date descending
       gifts.sort((a, b) => {
+        if (a.order !== undefined && b.order !== undefined) {
+           return a.order - b.order;
+        }
+        if (a.order !== undefined && b.order === undefined) return -1;
+        if (a.order === undefined && b.order !== undefined) return 1;
+
         if (a.status !== b.status) {
           return a.status === 'available' ? -1 : 1;
         }
@@ -36,10 +42,23 @@ export async function addGift(name: string, description: string, photoUrl: strin
       status: 'available',
       chosenBy: '',
       public: true,
-      createdAt: Date.now() // using client timestamp for simplicity, but serverTimestamp is better for rules. Wait, rules require number type and I used Date.now().
+      createdAt: Date.now()
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, GIFTS_COLLECTION);
+  }
+}
+
+export async function updateGiftsOrder(updates: { id: string, order: number }[]) {
+  try {
+    const batch = writeBatch(db);
+    updates.forEach(update => {
+      const giftRef = doc(db, GIFTS_COLLECTION, update.id);
+      batch.update(giftRef, { order: update.order });
+    });
+    await batch.commit();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, GIFTS_COLLECTION);
   }
 }
 

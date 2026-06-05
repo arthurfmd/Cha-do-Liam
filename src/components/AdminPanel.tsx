@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Gift } from '../types';
-import { subscribeToGifts, addGift, deleteGift, unchooseGift } from '../api/gifts';
+import { subscribeToGifts, addGift, deleteGift, unchooseGift, updateGiftsOrder } from '../api/gifts';
 import { subscribeToEventInfo, updateEventInfo } from '../api/settings';
-import { Plus, Trash2, Unlock, Image as ImageIcon, LayoutGrid, List, Settings } from 'lucide-react';
+import { Plus, Trash2, Unlock, Image as ImageIcon, LayoutGrid, List, Settings, ArrowUp, ArrowDown } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 export function AdminPanel() {
@@ -23,6 +23,7 @@ export function AdminPanel() {
   const [eventTitle, setEventTitle] = useState('');
   const [eventDescription, setEventDescription] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [isReordering, setIsReordering] = useState(false);
 
   useEffect(() => {
     let unsubscribeGifts = () => {};
@@ -45,6 +46,35 @@ export function AdminPanel() {
       unsubscribeSettings();
     };
   }, []);
+
+  const handleMoveGift = async (index: number, direction: 'up' | 'down') => {
+    if (activeTab !== 'all') return;
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === filteredGifts.length - 1) return;
+
+    setIsReordering(true);
+    try {
+      // Create a copy of the current list
+      const newList = [...filteredGifts];
+      // Swap the elements
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      const temp = newList[index];
+      newList[index] = newList[targetIndex];
+      newList[targetIndex] = temp;
+
+      // Assign an order value to all elements to ensure consistency
+      const updates = newList.map((gift, idx) => ({
+        id: gift.id,
+        order: idx
+      }));
+
+      await updateGiftsOrder(updates);
+    } catch (err) {
+      alert("Erro ao reordenar.");
+    } finally {
+      setIsReordering(false);
+    }
+  };
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,7 +297,7 @@ export function AdminPanel() {
            <div className="p-8 text-center text-slate-500">Nenhum presente encontrado.</div>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {filteredGifts.map(gift => {
+            {filteredGifts.map((gift, index) => {
               const isChosen = gift.status === 'chosen';
               return (
                 <li key={gift.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-slate-50 transition-colors">
@@ -314,6 +344,26 @@ export function AdminPanel() {
                       </div>
                     ) : (
                       <>
+                        {activeTab === 'all' && (
+                          <div className="flex flex-col gap-1 mr-2 border-r border-slate-200 pr-4">
+                            <button 
+                              onClick={() => handleMoveGift(index, 'up')}
+                              disabled={index === 0 || isReordering}
+                              title="Mover para cima"
+                              className="p-1 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded disabled:opacity-30 transition-colors"
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleMoveGift(index, 'down')}
+                              disabled={index === filteredGifts.length - 1 || isReordering}
+                              title="Mover para baixo"
+                              className="p-1 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded disabled:opacity-30 transition-colors"
+                            >
+                              <ArrowDown className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
                         {isChosen && (
                           <button 
                              onClick={() => setConfirmingAction({ id: gift.id, type: 'unchoose' })}
