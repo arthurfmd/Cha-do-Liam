@@ -85,10 +85,10 @@ export default function App() {
                    <span className="text-4xl leading-none">🧸</span>
                 </div>
                 <h2 className="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-tight mb-4">
-                  Bem-vindo ao Chá do <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-400">Liam</span>
+                  {eventInfo?.title || 'Bem-vindo ao Chá do Liam'}
                 </h2>
                 <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto font-semibold leading-relaxed">
-                  Estamos muito felizes em compartilhar esse momento! Escolha abaixo um presentinho com carinho para a chegada do nosso menino.
+                  {eventInfo?.description || 'Estamos muito felizes em compartilhar esse momento! Escolha abaixo um presentinho com carinho para a chegada do nosso menino.'}
                 </p>
             </div>
             <GiftGrid />

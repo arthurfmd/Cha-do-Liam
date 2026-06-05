@@ -7,7 +7,9 @@ const EVENT_INFO_DOC = 'eventInfo';
 
 const defaultEventInfo: EventInfo = {
   date: '25 de Agosto às 15h',
-  location: 'Rua das Flores, 123'
+  location: 'Rua das Flores, 123',
+  title: 'Bem-vindo ao Chá do Liam',
+  description: 'Estamos muito felizes em compartilhar esse momento! Escolha abaixo um presentinho com carinho para a chegada do nosso menino.'
 };
 
 export function subscribeToEventInfo(callback: (info: EventInfo) => void) {

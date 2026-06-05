@@ -20,6 +20,8 @@ export function AdminPanel() {
 
   const [eventDate, setEventDate] = useState('');
   const [eventLocation, setEventLocation] = useState('');
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   useEffect(() => {
@@ -34,6 +36,8 @@ export function AdminPanel() {
     unsubscribeSettings = subscribeToEventInfo((info) => {
       setEventDate(info.date);
       setEventLocation(info.location);
+      setEventTitle(info.title || '');
+      setEventDescription(info.description || '');
     });
 
     return () => {
@@ -46,7 +50,12 @@ export function AdminPanel() {
     e.preventDefault();
     setIsSavingSettings(true);
     try {
-      await updateEventInfo({ date: eventDate, location: eventLocation });
+      await updateEventInfo({ 
+        date: eventDate, 
+        location: eventLocation,
+        title: eventTitle,
+        description: eventDescription
+      });
       alert('Configurações salvas com sucesso!');
     } catch (err) {
       alert('Erro ao salvar configurações.');
@@ -205,6 +214,24 @@ export function AdminPanel() {
           <div className="p-6 sm:p-8">
             <h3 className="font-semibold text-lg text-slate-800 mb-6">Informações do Evento</h3>
             <form onSubmit={handleSaveSettings} className="space-y-5 max-w-lg">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Título da Página Inicial</label>
+                <input 
+                  type="text" 
+                  value={eventTitle} onChange={e => setEventTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Ex: Bem-vindo ao Chá do Liam"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Descrição da Página Inicial</label>
+                <textarea 
+                  rows={3}
+                  value={eventDescription} onChange={e => setEventDescription(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Mensagem de boas-vindas..."
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1.5">Data e Hora</label>
                 <input 

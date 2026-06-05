@@ -12,4 +12,6 @@ export interface Gift {
 export interface EventInfo {
   date: string;
   location: string;
+  title?: string;
+  description?: string;
 }
